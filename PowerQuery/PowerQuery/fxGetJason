@@ -1,0 +1,24 @@
+// fxGetJson call your function fxGetJason//
+let
+    Source = (relativePath as text) as any =>
+        let
+            baseUrl = "https://api.powerbi.com",
+            token = fxAccessToken(),
+            source =
+                Json.Document(
+                    Web.Contents(
+                        baseUrl,
+                        [
+                            RelativePath = relativePath,
+                            Headers = [
+                                Authorization = "Bearer " & token,
+                                Accept = "application/json"
+                            ],
+                            ManualStatusHandling = {400,401,403,404,429,500,502,503,504}
+                        ]
+                    )
+                )
+        in
+            source
+in
+    Source
