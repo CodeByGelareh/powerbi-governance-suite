@@ -1,0 +1,30 @@
+// GetGatewayDatasources-Example.pq
+// Example query: returns datasources for a gateway in the Power BI tenant.
+
+let
+    // Replace this with your real gateway ID in your local file,
+    // but keep it as a placeholder in GitHub.
+    GatewayId = "<GATEWAY_ID>",
+
+    Query1 = fxGetJson("v1.0/myorg/gateways/" & GatewayId & "/datasources"),
+    value = Query1[value],
+    #"Converted to Table" =
+        Table.FromList(value, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+    #"Expanded Column1" =
+        Table.ExpandRecordColumn(
+            #"Converted to Table",
+            "Column1",
+            {"id", "gatewayId", "datasourceType", "connectionDetails", "credentialType", "credentialDetails", "datasourceName"},
+            {"id", "gatewayId", "datasourceType", "connectionDetails", "credentialType", "credentialDetails", "datasourceName"}
+        ),
+    #"Expanded credentialDetails" =
+        Table.ExpandRecordColumn(
+            #"Expanded Column1",
+            "credentialDetails",
+            {"privacyLevel", "useEndUserOAuth2Credentials"},
+            {"privacyLevel", "useEndUserOAuth2Credentials"}
+        ),
+    #"Renamed Columns" =
+        Table.RenameColumns(#"Expanded credentialDetails", {{"id", "Datasource ID"}})
+in
+    #"Renamed Columns"
