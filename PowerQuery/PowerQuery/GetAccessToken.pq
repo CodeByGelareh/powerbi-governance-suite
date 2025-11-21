@@ -1,4 +1,4 @@
-// GetAccessToken.pq
+// GetAccessToken.pq. Call this fxAccessToken()
 let
     GetAccessToken = () as text =>
         let
