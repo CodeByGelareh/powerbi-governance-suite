@@ -1,0 +1,41 @@
+// GoogleAnalyticsPowerBIViews.pq
+// Retrieves Google Analytics events that contain Power BI Publish to Web URLs.
+
+let
+    // Use placeholders in GitHub; in your local file, replace with real IDs or parameters.
+    GAAccountId  = "accounts/<ACCOUNT_ID>",
+    GAPropertyId = "properties/<PROPERTY_ID>",
+
+    Source              = GoogleAnalytics.Accounts([Implementation = "2.0"]),
+    Account             = Source{[Id = GAAccountId]}[Data],
+    PropertyList        = Account{[Id = GAPropertyId]}[Data],
+    PropertyData        = PropertyList{[Id = GAPropertyId]}[Data],
+
+    AddedItems = Cube.Transform(
+        PropertyData,
+        {
+            {Cube.AddMeasureColumn, "activeUsers", "activeUsers"},
+            {Cube.AddAndExpandDimensionColumn, "customEvent:event_label", {"customEvent:event_label"}, {"customEvent:event_label"}},
+            {Cube.AddAndExpandDimensionColumn, "customEvent:link_url", {"customEvent:link_url"}, {"customEvent:link_url"}},
+            {Cube.AddAndExpandDimensionColumn, "customEvent:ui_heading", {"customEvent:ui_heading"}, {"customEvent:ui_heading"}},
+            {Cube.AddAndExpandDimensionColumn, "customEvent:ui_page_path", {"customEvent:ui_page_path"}, {"customEvent:ui_page_path"}},
+            {Cube.AddAndExpandDimensionColumn, "linkUrl", {"linkUrl"}, {"linkUrl"}},
+            {Cube.AddAndExpandDimensionColumn, "pagePath", {"pagePath"}, {"pagePath"}},
+            {Cube.AddAndExpandDimensionColumn, "pagePathPlusQueryString", {"pagePathPlusQueryString"}, {"pagePathPlusQueryString"}},
+            {Cube.AddAndExpandDimensionColumn, "date", {"date"}, {"date"}},
+            {Cube.AddAndExpandDimensionColumn, "dateHour", {"dateHour"}, {"dateHour"}},
+            {Cube.AddMeasureColumn, "totalUsers", "totalUsers"},
+            {Cube.AddMeasureColumn, "userEngagementDuration", "userEngagementDuration"}
+        }
+    ),
+
+    ChangedType = Table.TransformColumnTypes(AddedItems, {{"dateHour", Int64.Type}}),
+
+    // Filter to only GA events that point to Power BI Publish to Web links
+    FilteredRows =
+        Table.SelectRows(
+            ChangedType,
+            each Text.Contains([#"customEvent:link_url"], "https://app.powerbi.com/view?r")
+        )
+in
+    FilteredRows
