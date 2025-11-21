@@ -1,0 +1,9 @@
+let
+    Source = Workspaces,
+    #"Removed Columns" = Table.RemoveColumns(Source,{"@odata.context", "@odata.count", "isReadOnly", "isOnDedicatedCapacity", "capacityMigrationStatus", "description", "type", "state", "hasWorkspaceLevelSettings ", "name", "datasets", "dataflows", "reports", "users"}),
+    #"Expanded dashboards" = Table.ExpandListColumn(#"Removed Columns", "dashboards"),
+    #"Expanded dashboards1" = Table.ExpandRecordColumn(#"Expanded dashboards", "dashboards", {"id", "displayName", "isReadOnly", "users", "subscriptions"}, {"id", "displayName", "isReadOnly", "users", "subscriptions"}),
+    #"Renamed Columns" = Table.RenameColumns(#"Expanded dashboards1",{{"id", "dashboardId"}, {"displayName", "dashboardName"}}),
+    #"Filtered Rows" = Table.SelectRows(#"Renamed Columns", each ([dashboardId] <> null))
+in
+    #"Filtered Rows"
